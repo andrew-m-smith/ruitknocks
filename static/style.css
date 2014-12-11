@@ -1,0 +1,100 @@
+body {
+	background-color: #00191d;
+	color: #fec95c;
+	font-family: "Snickles";
+}
+
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 1em;
+}
+
+#container {
+	position: relative;
+	width: 950px;
+	height: 100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#currentGameContainer{
+	position: relative;
+	top: -25px;
+	text-align: center;
+	margin: 0 0 5px 0;
+	font-size: 1.5em;
+}
+
+#smallContainer {
+	position: relative;
+	width: 950px;
+	padding: 0;
+	margin: 0;
+}
+
+#formContainer {
+	position: absolute;
+	left: 175px;
+	width: 400px;
+	margin: 0;
+	padding: 0;
+	font-size: 24px;
+}
+
+#knockListContainer {
+	top: 4px;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	right: 100px;
+	width: 25%;
+	font-size: 24px;
+}
+
+#knockListContainer ul {
+	list-style-type: none;
+	font-size: 0.75em;
+}
+
+h2 {
+	margin: 0 0 .5em 0;
+}
+
+input {
+	background-color: #00191d;
+	border-color: #fec95c;
+	color: #fec95c;
+	height: 20px;
+	width: 200px;
+	margin: 10px 0px 10px 35px;
+	padding: 5px;
+}
+
+select {
+	text-align: center;
+	background-color: #00191d;
+	color: #fec95c;
+	height: 34px;
+	width: 214px;
+	margin: 10px 0px 10px 35px;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;   
+	-webkit-border-radius: 0;
+	-moz-border-radius: 0;
+	border-radius: 0;
+	border: 2px inset #fec95c;
+	padding: 5px;
+}
+
+input:focus, select:focus {
+	outline: none;
+}
+
+body, html {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}

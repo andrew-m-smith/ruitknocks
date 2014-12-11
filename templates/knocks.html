@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="{{ jquery }}"></script>
+<script src="{{ js }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ font }}">
+<link rel="stylesheet" type="html/css" href="{{ style }}">
+</head>
+<body>
+<div id="container">
+<img src="{{ banner }}" width="939px" height="162px" usemap="#bannermap">
+<map name="bannermap">
+<area class="knockArea" shape="poly" coords="85,54,181,33,191,98,82,111,85,54">
+<area class="checkArea" shape="poly" coords="181,33,369,29,365,89,191,98,181,33">
+<area class="cancelArea" shape="poly" coords="369,29,555,53,548,109,365,89,369,29">
+<area class="endArea" shape="poly" coords="555,53,695,53,692,112,548,109,555,53">
+<area class="newArea" shape="poly" coords="695,53,861,36,852,97,692,112,695,53">
+</map>
+<h1 id="currentGameContainer"></h1>
+<div id="smallContainer">
+<div id="formContainer">
+</div>
+<div id="knockListContainer">
+<h2>KNOCK LIST</h2>
+<ul></ul>
+</div>
+</div>
+</div>
+</body>
+</html>
