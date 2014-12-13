@@ -73,10 +73,14 @@ $(document).ready(function(){
 		if(current[0] !== null && current[1] !== null){
 			form += '<form id="endGame">';
 			form += '<h2>How many cups did you get?</h2>'
-			form += current[0]
+			form += current[0].slice(0, current[0].indexOf(" and "));
 			form += '<br><input type="text" name="cupsOne" maxlength="2"><br>';
-			form += current[1]
+			form += current[0].slice(current[0].indexOf(" and ")+5);
 			form += '<br><input type="text" name="cupsTwo" maxlength="2"><br>';
+			form += current[1].slice(0, current[0].indexOf(" and "));
+			form += '<br><input type="text" name="cupsThree" maxlength="2"><br>';
+			form += current[1].slice(current[0].indexOf(" and ")+5);
+			form += '<br><input type="text" name="cupsFour" maxlength="2"><br>';
 		}else{
 			form += '<h2>NO GAMES IN PROGRESS</h2>'
 		}
@@ -87,8 +91,8 @@ $(document).ready(function(){
 	$(document).on("keypress", "[name='cupsOne']", function(e){
 		code = e.which;
 		if(code == 13){
-			if( $("[name='cupsOne']").val().length < 1){
-				$("[name='cupsOne']").val("");
+			if( $(this).val().length < 1){
+				$(this).val("");
 			}else{
 				$("[name='cupsTwo']").focus();
 			}
@@ -98,8 +102,30 @@ $(document).ready(function(){
 	$(document).on("keypress", "[name='cupsTwo']", function(e){
 		code = e.which;
 		if(code == 13){
-			if( $("[name='cupsTwo']").val().length < 1){
-				$("[name='cupsTwo']").val("");
+			if( $(this).val().length < 1){
+				$(this).val("");
+			}else{
+				$("[name='cupsThree']").focus();
+			}
+		}else if(code < 48 || code > 57) return false;
+	});
+
+	$(document).on("keypress", "[name='cupsThree']", function(e){
+		code = e.which;
+		if(code == 13){
+			if( $(this).val().length < 1){
+				$(this).val("");
+			}else{
+				$("[name='cupsFour']").focus();
+			}
+		}else if(code < 48 || code > 57) return false;
+	});
+
+	$(document).on("keypress", "[name='cupsFour']", function(e){
+		code = e.which;
+		if(code == 13){
+			if( $(this).val().length < 1){
+				$(this).val("");
 			}else{
 				$("form").submit();
 			}

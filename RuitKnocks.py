@@ -30,6 +30,10 @@ def __newTables():
     try:
         conn = __conn()
         cur = conn.cursor()
+        cur.execute("ALTER TABLE games ADD COLUMN team1player1cups INTEGER DEFAULT 0")
+        cur.execute("ALTER TABLE games ADD COLUMN team1player2cups INTEGER DEFAULT 0")
+        cur.execute("ALTER TABLE games ADD COLUMN team2player1cups INTEGER DEFAULT 0")
+        cur.execute("ALTER TABLE games ADD COLUMN team2player2cups INTEGER DEFAULT 0")
         conn.commit()
         conn.close()
         __log("New database schema set up successfully", "db")
@@ -295,28 +299,34 @@ def getWinner():
 
 
 def addWin(tid):
+    players = getTeamPlayers(tid)
     conn = __conn()
     cur = conn.cursor()
-    t = (tid,)
-    cur.execute('UPDATE teams SET wins = wins + 1 WHERE tid = ?', t)
+    t1 = (tid,)
+    t2 = (players[0], players[1])
+    cur.execute('UPDATE teams SET wins = wins + 1 WHERE tid = ?', t1)
+    cur.execute('UPDATE players set wins = wins + 1 WHERE pid = ? OR pid = ?', t2)
     conn.commit()
     conn.close()
 
 
 def addLose(tid):
+    players = getTeamPlayers(tid)
     conn = __conn()
     cur = conn.cursor()
-    t = (tid,)
-    cur.execute('UPDATE teams SET losses = losses + 1 WHERE tid = ?', t)
+    t1 = (tid,)
+    t2 = (players[0], players[1])
+    cur.execute('UPDATE teams SET losses = losses + 1 WHERE tid = ?', t1)
+    cur.execute('UPDATE players set losses = losses + 1 WHERE pid = ? OR pid = ?', t2)
     conn.commit()
     conn.close()
 
 
-def addGame(tid1, tid2, p1, p2):
+def addGame(tid1, tid2, t1p1, t1p2, t2p1, t2p2):
     conn = __conn()
     cur = conn.cursor()
-    t = (tid1, tid2, p1, p2)
-    cur.execute('INSERT INTO games (tid1, tid2, cups1, cups2) values (?, ?, ?, ?)', t)
+    t = (tid1, tid2, int(t1p1)+int(t1p2), int(t2p1)+int(t2p2), t1p1, t1p2, t2p1, t2p2)
+    cur.execute('INSERT INTO games (tid1, tid2, cups1, cups2, team1player1cups, team1player2cups, team2player1cups, team2player2cups) values (?, ?, ?, ?, ?, ?, ?, ?)', t)
     conn.commit()
     conn.close()
 
@@ -542,7 +552,9 @@ def end():
     if request.method == "POST":
         cupsOne = request.form["cupsOne"]
         cupsTwo = request.form["cupsTwo"]
-        addGame(currentGame[0], currentGame[1], cupsOne, cupsTwo)
+        cupsThree = request.form["cupsThree"]
+        cupsFour = request.form["cupsFour"]
+        addGame(currentGame[0], currentGame[1], cupsOne, cupsTwo, cupsThree, cupsFour)
         winner = getWinner()
         currentGame[0] = winner
         currentGame[1] = playTeam()
