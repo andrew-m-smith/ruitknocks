@@ -5,6 +5,7 @@ import smtplib
 import re
 import datetime
 import inspect
+import os.path
 
 app = Flask(__name__)
 currentGame = [8, 9]
@@ -29,8 +30,6 @@ def __newTables():
     try:
         conn = __conn()
         cur = conn.cursor()
-        cur.execute('ALTER TABLE games ADD COLUMN cups3 INTEGER')
-        cur.execute('ALTER TABLE games ADD COLUMN cups4 INTEGER')
         conn.commit()
         conn.close()
         __log("New database schema set up successfully", "db")
@@ -583,16 +582,19 @@ def setup():
 
 
 def main():
-    if debug:
-        if not setupDebug():
-            sys.exit("Error in database setup.")
-        elif new:
-            if not __newTables():
-                sys.exit("Error in new schema.")
-    app.run(debug=debug, host='0.0.0.0', port=80)
+	if debug:
+		if not setupDebug():
+			sys.exit("Error in database setup.")
+		elif new:
+			if not __newTables():
+				sys.exit("Error in new schema.")
+	app.run(debug=debug, host='0.0.0.0', port=80)
 
 
 if __name__ == '__main__':
+    if not os.path.isfile('rut.db'):
+        if not setupDB():
+        	sys.exit("Error in database setup.")
     for arg in sys.argv:
         if arg == '-d':
             debug = True

@@ -1,4 +1,5 @@
 rut.db
 test.db
 venv/
+logs/
 RuitKnocks.pyc
