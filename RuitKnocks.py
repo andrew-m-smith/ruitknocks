@@ -68,7 +68,7 @@ def setupDB():
         cur = conn.cursor()
         cur.execute('CREATE TABLE players (pid INTEGER PRIMARY KEY, fname VARCHAR(255), lname VARCHAR(255), wins INTEGER, losses INTEGER, phone INTEGER, carrier VARCHAR(255))')
         cur.execute('CREATE TABLE teams (tid INTEGER PRIMARY KEY , pid1 INTEGER REFERENCES players(pid), pid2 INTEGER REFERENCES players(pid), wins INTEGER, losses INTEGER)')
-        cur.execute('CREATE TABLE games (gid INTEGER PRIMARY KEY, tid1 INTEGER REFERENCES teams(tid), tid2 INTEGER REFERENCES teams(tid), cups1 INTEGER, cups2 INTEGER)')
+        cur.execute('CREATE TABLE games (gid INTEGER PRIMARY KEY, tid1 INTEGER REFERENCES teams(tid), tid2 INTEGER REFERENCES teams(tid), cups1 INTEGER, cups2 INTEGER, team1player1cups INTEGER, team1player2cups INTEGER, team2player1cups INTEGER, team2player2cups INTEGER)')
         cur.execute('CREATE TABLE knocks (tid INTEGER REFERENCES teams(tid))')
         cur.execute('CREATE TABLE carriers (name VARCHAR(255), address VARCHAR(255))')
         conn.commit()
