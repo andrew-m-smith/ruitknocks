@@ -16,6 +16,8 @@ $(document).ready(function(){
 		});
 		if(current[0] != null && current[1] != null){
 			$("#currentGameContainer").html("<h2>NOW PLAYING</h2>" + current[0] + " Versus " + current[1]);
+		}else{
+			$("#currentGameContainer").html("");
 		}
 		$("#formContainer").html(response.response);
 	}
@@ -77,9 +79,9 @@ $(document).ready(function(){
 			form += '<br><input type="text" name="cupsOne" maxlength="2"><br>';
 			form += current[0].slice(current[0].indexOf(" and ")+5);
 			form += '<br><input type="text" name="cupsTwo" maxlength="2"><br>';
-			form += current[1].slice(0, current[0].indexOf(" and "));
+			form += current[1].slice(0, current[1].indexOf(" and "));
 			form += '<br><input type="text" name="cupsThree" maxlength="2"><br>';
-			form += current[1].slice(current[0].indexOf(" and ")+5);
+			form += current[1].slice(current[1].indexOf(" and ")+5);
 			form += '<br><input type="text" name="cupsFour" maxlength="2"><br>';
 		}else{
 			form += '<h2>NO GAMES IN PROGRESS</h2>'

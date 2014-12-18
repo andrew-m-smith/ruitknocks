@@ -8,9 +8,9 @@ import inspect
 import os.path
 
 app = Flask(__name__)
-currentGame = [8, 9]
+currentGame = []
 debug = False
-new = False
+newDB = False
 
 def __conn():
     db = 'rut.db'
@@ -68,7 +68,7 @@ def setupDB():
         cur = conn.cursor()
         cur.execute('CREATE TABLE players (pid INTEGER PRIMARY KEY, fname VARCHAR(255), lname VARCHAR(255), wins INTEGER, losses INTEGER, phone INTEGER, carrier VARCHAR(255))')
         cur.execute('CREATE TABLE teams (tid INTEGER PRIMARY KEY , pid1 INTEGER REFERENCES players(pid), pid2 INTEGER REFERENCES players(pid), wins INTEGER, losses INTEGER)')
-        cur.execute('CREATE TABLE games (gid INTEGER PRIMARY KEY, tid1 INTEGER REFERENCES teams(tid), tid2 INTEGER REFERENCES teams(tid), cups1 INTEGER, cups2 INTEGER, team1player1cups INTEGER, team1player2cups INTEGER, team2player1cups INTEGER, team2player2cups INTEGER)')
+        cur.execute('CREATE TABLE games (gid INTEGER PRIMARY KEY, tid1 INTEGER REFERENCES teams(tid), tid2 INTEGER REFERENCES teams(tid), cups1 INTEGER DEFAULT 0, cups2 INTEGER DEFAULT 0, team1player1cups INTEGER DEFAULT 0, team1player2cups INTEGER DEFAULT 0, team2player1cups INTEGER DEFAULT 0, team2player2cups INTEGER DEFAULT 0)')
         cur.execute('CREATE TABLE knocks (tid INTEGER REFERENCES teams(tid))')
         cur.execute('CREATE TABLE carriers (name VARCHAR(255), address VARCHAR(255))')
         conn.commit()
@@ -227,7 +227,8 @@ def teamKnock(tid):
 
 
 def checkKnock(tid):
-    if tid in currentGame:
+    r = getCurrentGame()
+    if tid == r[1] or tid == r[2]:
         return -1
     else:
         conn = __conn()
@@ -322,11 +323,32 @@ def addLose(tid):
     conn.close()
 
 
-def addGame(tid1, tid2, t1p1, t1p2, t2p1, t2p2):
+def addGame(tid1, tid2):
     conn = __conn()
     cur = conn.cursor()
-    t = (tid1, tid2, int(t1p1)+int(t1p2), int(t2p1)+int(t2p2), t1p1, t1p2, t2p1, t2p2)
-    cur.execute('INSERT INTO games (tid1, tid2, cups1, cups2, team1player1cups, team1player2cups, team2player1cups, team2player2cups) values (?, ?, ?, ?, ?, ?, ?, ?)', t)
+    t = (tid1, tid2)
+    cur.execute('INSERT INTO games (tid1, tid2, cups1, cups2) values (?, ?, 0, 0)', t)
+    conn.commit()
+    conn.close()
+
+
+def getCurrentGame():
+    conn = __conn()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM games WHERE cups1 = 0 AND cups2 = 0 ORDER BY gid DESC LIMIT 1')
+    r = cur.fetchone()
+    conn.close()
+    if r is None:
+        r = [None, None, None]
+    return r
+
+
+def endGame(t1p1, t1p2, t2p1, t2p2):
+    gid = getCurrentGame()[0]
+    conn = __conn()
+    cur = conn.cursor()
+    t = (int(t1p1)+int(t1p2), int(t2p1)+int(t2p2), t1p1, t1p2, t2p1, t2p2, gid)
+    cur.execute('UPDATE games SET cups1=?, cups2=?, team1player1cups=?, team1player2cups=?, team2player1cups=?, team2player2cups=? WHERE gid=?', t)
     conn.commit()
     conn.close()
 
@@ -381,12 +403,12 @@ def checkPlayer(pid):
     if getPlayer(pid) is None:
         return 2
     knocks = getKnocksList()
+    currentGame = getCurrentGame()
     if currentGame[0] is not None:
-        knocks.append(currentGame[0])
-    if currentGame[1] is not None:
-        knocks.append(currentGame[1])
+        knocks.append((currentGame[1],))
+        knocks.append((currentGame[2],))
     for i in knocks:
-        pids = getTeamPids(i)
+        pids = getTeamPids(i[0])
         if pids is None:
             pass
         elif int(pid) == pids[0] or int(pid) == pids[1]:
@@ -400,8 +422,13 @@ def makeJSON(response):
         knocksList = getKnocksList()
         for i in knocksList:
             knocks.append(getTeamPlayers(i[0]))
-        teamOne = getTeamPlayers(currentGame[0])
-        teamTwo = getTeamPlayers(currentGame[1])
+        r = getCurrentGame()
+        if r is None:
+            teamOne = None
+            teamTwo = None
+        else:
+            teamOne = getTeamPlayers(r[1])
+            teamTwo = getTeamPlayers(r[2])
         myCurrentGame = [teamOne, teamTwo]
         carriers = getCarriers()
         myJSON = {}
@@ -426,6 +453,7 @@ def index(*opts):
 @app.route("/start", methods=["GET", "POST"])
 def start():
     return makeJSON("")
+
 
 @app.route("/knock", methods=["GET", "POST"])
 def knock():
@@ -463,13 +491,13 @@ def knock():
             return makeJSON("There was an error. Please try again.")
         elif knock == -1:
             return makeJSON("It is your turn to play!")
+        elif getCurrentGame()[0] is None:
+            if len(getKnocksList()) == 2:
+                addGame(playTeam(), playTeam())
+                return makeJSON("It is your turn to play!")
+            else:
+                return makeJSON("It is your turn to play, but nobody else has knocks yet.")
         elif knock == 0:
-            if currentGame[0] is None:
-                currentGame[0] = playTeam()
-                return makeJSON("It is your turn to play!")
-            elif currentGame[1] is None:
-                currentGame[1] = playTeam()
-                return makeJSON("It is your turn to play!")
             return makeJSON("You are next on the table!")
         elif knock == 1:
             return makeJSON("There is 1 team ahead of you.")
@@ -554,11 +582,15 @@ def end():
         cupsTwo = request.form["cupsTwo"]
         cupsThree = request.form["cupsThree"]
         cupsFour = request.form["cupsFour"]
-        addGame(currentGame[0], currentGame[1], cupsOne, cupsTwo, cupsThree, cupsFour)
+        endGame(cupsOne, cupsTwo, cupsThree, cupsFour)
         winner = getWinner()
-        currentGame[0] = winner
-        currentGame[1] = playTeam()
-        return makeJSON("Congratulations %s!\nYour next opponents are %s" % (getTeamPlayers(currentGame[0]), getTeamPlayers(currentGame[1])))
+        if len(getKnocksList()) > 0:
+            nextTeam = playTeam()
+            addGame(winner, nextTeam)
+            return makeJSON("Congratulations %s!\nYour next opponents are %s" % (getTeamPlayers(winner), getTeamPlayers(nextTeam)))
+        else:
+            teamKnock(winner)
+            return makeJSON("Congratulations %s!\nNobody else has knocks yet." % getTeamPlayers(winner))
     else:
         return makeJSON("There was an error. Please try again.")
 
@@ -597,7 +629,7 @@ def main():
 	if debug:
 		if not setupDebug():
 			sys.exit("Error in database setup.")
-		elif new:
+		if newDB:
 			if not __newTables():
 				sys.exit("Error in new schema.")
 	app.run(debug=debug, host='0.0.0.0', port=80)
@@ -612,5 +644,5 @@ if __name__ == '__main__':
             debug = True
         elif arg == '-n':
             debug = True
-            new = True
+            newDB = True
     main()
